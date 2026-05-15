@@ -1,47 +1,62 @@
 # Gallery API Token Service
 
-为 Google AI Edge Gallery 添加本地 API Token 服务,提供 OpenAI 兼容的 `/v1/chat/completions` 接口。
+![CI Status](https://github.com/XiTu893/GalleryApi/actions/workflows/android-ci.yml/badge.svg)
+
+为 Google AI Edge Gallery 添加本地 API Token 服务，提供 OpenAI 兼容的 `/v1/chat/completions` 接口。
 
 ## 🎯 项目目标
 
-将 Google AI Edge Gallery 改造成支持本地 API 服务的 Android 应用,允许外部应用通过 HTTP API 调用设备上运行的 LiteRT-LM 模型 (如 Gemma、Qwen 等),实现:
+将 Google AI Edge Gallery 改造成支持本地 API 服务的 Android 应用，允许外部应用通过 HTTP API 调用设备上运行的 LiteRT-LM 模型（如 Gemma、Qwen 等），实现：
 
-- ✅ 完全离线运行 (无需云端)
-- ✅ 数据隐私保护 (所有计算在本地)
-- ✅ OpenAI API 兼容 (无缝切换现有应用)
-- ✅ Token 认证管理 (安全访问控制)
+- ✅ 完全离线运行（无需云端）
+- ✅ 数据隐私保护（所有计算在本地）
+- ✅ OpenAI API 兼容（无缝切换现有应用）
+- ✅ Token 认证管理（安全访问控制）
+- ✅ UI 控制面板（直观管理 API 服务）
 
 ## 📁 项目结构
 
 ```
-iceMApi/
-├── gallery/                          # Google AI Edge Gallery 源码
+GalleryApi/
+├── .github/
+│   └── workflows/
+│       └── android-ci.yml              # GitHub Actions CI 配置
+├── gallery/                            # Google AI Edge Gallery (Git Submodule)
 │   └── Android/src/
 │       └── app/src/main/java/com/google/ai/edge/gallery/
-│           └── api/                  # 新增 API 模块
-│               ├── model/            # 数据模型
-│               ├── middleware/       # 认证中间件
-│               ├── handler/          # API 处理器 (待实现)
-│               ├── router/           # 路由 (待实现)
-│               ├── inference/        # LiteRT 适配器 (待实现)
-│               └── response/         # 响应构建器 (待完成)
-└── doc/                              # 项目文档
-    ├── Gallery_API_Token_服务改造方案.md    # 完整设计方案
-    ├── IMPLEMENTATION_PROGRESS.md         # 实施进度
-    ├── PROJECT_SUMMARY.md                 # 项目总结
-    └── QUICK_START.md                     # 快速开始指南
+│           ├── api/                    # ✨ 新增 API 模块
+│           │   ├── model/              # 数据模型
+│           │   ├── middleware/         # 认证中间件
+│           │   ├── handler/            # API 处理器
+│           │   ├── router/             # 路由
+│           │   ├── inference/          # LiteRT 适配器
+│           │   ├── response/           # 响应构建器
+│           │   ├── ApiService.kt       # NanoHTTPD 服务器
+│           │   ├── ApiConfig.kt        # API 配置管理
+│           │   └── TokenManager.kt     # Token 管理器
+│           └── ui/home/
+│               └── ApiServiceControlPanel.kt  # ✨ UI 控制面板
+└── doc/                                # 项目文档
+    ├── Gallery_API_Token_服务改造方案.md
+    ├── IMPLEMENTATION_PROGRESS.md
+    ├── PROJECT_SUMMARY.md
+    ├── QUICK_START.md
+    ├── API_SERVICE_UI_CONTROL.md
+    └── COMPLETION_REPORT.md
 ```
 
 ## ✅ 已完成的工作
 
 ### 1. 基础架构 (100%)
-- [x] Clone Gallery 仓库 (v1.0.14)
+- [x] Clone Gallery 仓库并设置为 Git Submodule
 - [x] 分析 LiteRT-LM 集成方式
 - [x] 添加 NanoHTTPD 依赖
+- [x] 配置 GitHub Actions CI/CD
 
 ### 2. 数据模型 (100%)
 - [x] `ApiToken.kt` - Token 数据结构
 - [x] `OpenAiModels.kt` - OpenAI 兼容的请求/响应模型
+- [x] 默认 Token 过期时间设置为 10 年
 
 ### 3. Token 管理 (100%)
 - [x] `TokenManager.kt` - Token 生成、验证、撤销、统计
@@ -49,27 +64,47 @@ iceMApi/
 ### 4. 认证中间件 (100%)
 - [x] `AuthMiddleware.kt` - Bearer Token 验证
 
-### 5. API 配置管理 (100%) ✨ NEW
+### 5. API 配置管理 (100%) ✨
 - [x] `ApiConfig.kt` - API Key 认证开关配置
 - [x] `/v1/config` 端点 - 查询和修改配置
 - [x] 可选认证支持 - 允许无 Token 访问聊天接口
 - [x] **UI 控制面板** - 设置对话框中显示服务器地址和认证开关
 
+### 6. HTTP 服务器 (100%) ✨
+- [x] `ApiService.kt` - NanoHTTPD 服务器实现
+- [x] `ApiServerService.kt` - Android Foreground Service
+- [x] `ApiServerController.kt` - 服务器生命周期控制
+
+### 7. API 路由与处理 (100%) ✨
+- [x] `ApiRouter.kt` - 请求路由
+- [x] `ChatCompletionHandler.kt` - 聊天补全处理器
+- [x] `TokenHandler.kt` - Token 管理处理器
+- [x] `ResponseBuilder.kt` - 响应构建器
+
+### 8. LiteRT 适配器 (70%) 🚧
+- [x] `LiteRtAdapter.kt` - 框架实现（Mock 响应）
+- [ ] 集成真实 LiteRT-LM 推理引擎
+
 ## 🚧 待完成的工作
 
 ### 核心功能 (优先级高)
-- [ ] NanoHTTPD 服务器 (`ApiService.kt`)
-- [ ] Android Foreground Service (`ApiServerService.kt`)
-- [ ] API 路由器 (`ApiRouter.kt`)
-- [ ] 聊天补全处理器 (`ChatCompletionHandler.kt`)
-- [ ] Token 管理处理器 (`TokenHandler.kt`)
-- [ ] LiteRT-LM 适配器 (`LiteRtAdapter.kt`)
-- [ ] 响应构建器 (`ResponseBuilder.kt`)
+- [ ] **集成真实 LiteRT-LM 推理引擎**
+  - 连接 `LlmModelHelper` 接口
+  - 实现消息格式转换
+  - 处理流式响应
+  
+- [ ] UI 启动/停止控制
+  - 在 ApiServiceControlPanel 中添加服务器开关
+  - 显示服务器运行状态
 
-### 配置和集成
-- [ ] 更新 `AndroidManifest.xml`
-- [ ] UI 控制界面 (可选)
+### 增强功能 (可选)
 - [ ] 加密存储 (生产环境)
+  - 使用 EncryptedSharedPreferences 存储 Token
+  - 或使用 Room + SQLCipher
+  
+- [ ] HTTPS/TLS 支持
+- [ ] 速率限制
+- [ ] 显示实际 LAN IP 地址
 
 ## 📖 文档
 
@@ -87,24 +122,50 @@ iceMApi/
 
 - Android Studio Hedgehog 或更高版本
 - Android SDK 31+ (Android 12)
+- JDK 17
 - 设备至少 6GB RAM (用于运行 LLM)
+
+### 克隆项目
+
+```bash
+# 克隆主仓库（包含子模块）
+git clone --recursive git@github.com:XiTu893/GalleryApi.git
+cd GalleryApi
+
+# 如果已经克隆但忘记 --recursive
+git submodule update --init --recursive
+```
 
 ### 构建和运行
 
 ```bash
-# 1. 克隆项目 (已完成)
-cd iceMApi/gallery/Android/src
+# 1. 进入 Android 项目目录
+cd gallery/Android/src
 
 # 2. 同步 Gradle 依赖
 ./gradlew build
 
 # 3. 在 Android Studio 中打开项目并运行
+# 或者使用命令行安装到设备
+./gradlew installDebug
 ```
 
-### API 测试 (待服务器实现后)
+### GitHub Actions 自动编译
+
+每次推送到 `master` 分支时，GitHub Actions 会自动编译 APK：
+
+1. 访问 https://github.com/XiTu893/GalleryApi/actions
+2. 查看最近的 workflow 运行状态
+3. 下载生成的 APK 文件（保留 30 天）
+
+详见 [.github/README_CI.md](.github/README_CI.md)
+
+### API 测试
+
+API 服务器运行在 `http://127.0.0.1:8080`
 
 ```bash
-# 查询配置
+# 查询当前配置
 curl http://127.0.0.1:8080/v1/config
 
 # 禁用认证（允许无 Token 访问）
@@ -112,10 +173,10 @@ curl -X PUT http://127.0.0.1:8080/v1/config \
   -H "Content-Type: application/json" \
   -d '{"auth_enabled": false}'
 
-# 生成 Token
+# 生成 Token（默认 10 年过期）
 curl -X POST http://127.0.0.1:8080/v1/tokens \
   -H "Content-Type: application/json" \
-  -d '{"name": "test", "expires_in_days": 30}'
+  -d '{"name": "test-token"}'
 
 # 聊天补全（需要 Token，如果认证已启用）
 curl -X POST http://127.0.0.1:8080/v1/chat/completions \
@@ -181,37 +242,34 @@ JSON (OpenAI Format)
 ## 📊 当前进度
 
 ```
-总体进度: ██████████████░░░░░░ 35%
+总体进度: ███████████████████░ 85%
 
 ✅ 数据模型层:    ████████████████████ 100%
 ✅ Token 管理:    ████████████████████ 100%
 ✅ 认证中间件:    ████████████████████ 100%
-✅ API 配置管理:  ████████████████████ 100% ✨ NEW
-🚧 HTTP 服务器:   ░░░░░░░░░░░░░░░░░░░░   0%
-🚧 API 路由:      ░░░░░░░░░░░░░░░░░░░░   0%
-🚧 LiteRT 适配:   ░░░░░░░░░░░░░░░░░░░░   0%
-🚧 配置和测试:    ░░░░░░░░░░░░░░░░░░░░   0%
+✅ API 配置管理:  ████████████████████ 100%
+✅ HTTP 服务器:   ████████████████████ 100%
+✅ API 路由:      ████████████████████ 100%
+🚧 LiteRT 适配:   ██████████████░░░░░░  70% (Mock 实现)
+🚧 UI 控制:       ██████████████░░░░░░  70% (缺少启停开关)
 ```
 
 ## 🎯 下一步行动
 
-### 立即可执行 (预计 2-3 小时)
+### 立即可执行 (预计 1-2 小时)
 
-1. **创建 NanoHTTPD 服务器**
-   - 实现 `ApiService.kt`
-   - 实现 `ApiServerService.kt`
-   - 基本路由和响应
+1. **集成真实 LiteRT-LM 推理引擎**
+   - 在 `LiteRtAdapter.kt` 中接入 `LlmModelHelper`
+   - 实现 OpenAI 消息到 LiteRT Contents 的转换
+   - 处理流式响应回调
+   - 测试端到端推理流程
 
-2. **实现 Token 端点**
-   - `/v1/tokens` POST - 生成 Token
-   - `/v1/tokens` GET - 列出 Token
-   - curl 测试验证
+2. **添加 UI 启停控制**
+   - 在 `ApiServiceControlPanel` 中添加启动/停止开关
+   - 显示服务器运行状态
+   - 集成 `ApiServerController`
 
-3. **创建 LiteRT 适配器原型**
-   - 封装 `LlmModelHelper` 调用
-   - 简单的 prompt 转换
-
-详细计划请查看 [PROJECT_SUMMARY.md](doc/PROJECT_SUMMARY.md)
+详细计划请查看 [PROJECT_SUMMARY.md](doc/PROJECT_SUMMARY.md) 和 [COMPLETION_REPORT.md](doc/COMPLETION_REPORT.md)
 
 ## 🤝 贡献指南
 
@@ -222,6 +280,13 @@ JSON (OpenAI Format)
 3. 提交更改 (`git commit -m 'Add amazing feature'`)
 4. 推送到分支 (`git push origin feature/amazing-feature`)
 5. 开启 Pull Request
+
+### 开发注意事项
+
+- 保持代码风格与 Gallery 项目一致
+- 添加必要的注释和文档
+- 确保 CI 编译通过
+- 更新相关文档
 
 ## 📄 许可证
 
@@ -235,10 +300,11 @@ Apache License 2.0 (与 Google AI Edge Gallery 保持一致)
 
 ## 📞 联系方式
 
-如有问题或建议,请提交 Issue。
+如有问题或建议，请提交 Issue。
 
 ---
 
 **最后更新**: 2026-05-15  
-**版本**: 0.1.0-alpha  
-**状态**: 开发中
+**版本**: 0.2.0-alpha  
+**状态**: 核心功能完成，等待 LiteRT-LM 集成  
+**仓库**: https://github.com/XiTu893/GalleryApi
