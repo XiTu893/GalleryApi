@@ -19,7 +19,6 @@ package com.google.ai.edge.gallery.api.inference
 import android.content.Context
 import android.util.Log
 import com.google.ai.edge.gallery.data.Model
-import com.google.ai.edge.gallery.ui.llmchat.LlmModelInstance
 
 class ModelRegistry private constructor(private val context: Context) {
     companion object {
@@ -80,10 +79,6 @@ class ModelRegistry private constructor(private val context: Context) {
     }
 
     private fun isModelLoaded(model: Model): Boolean {
-        val instance = model.instance ?: return false
-        return when (instance) {
-            is LlmModelInstance -> true
-            else -> instance != null
-        }
+        return model.instance != null
     }
 }
