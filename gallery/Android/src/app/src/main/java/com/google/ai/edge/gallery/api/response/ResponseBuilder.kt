@@ -40,7 +40,7 @@ object ResponseBuilder {
             401 -> NanoHTTPD.Response.Status.UNAUTHORIZED
             403 -> NanoHTTPD.Response.Status.FORBIDDEN
             404 -> NanoHTTPD.Response.Status.NOT_FOUND
-            429 -> NanoHTTPD.Response.Status.TOO_MANY_REQUESTS
+            429 -> NanoHTTPD.Response.Status.BAD_REQUEST
             500 -> NanoHTTPD.Response.Status.INTERNAL_ERROR
             503 -> NanoHTTPD.Response.Status.SERVICE_UNAVAILABLE
             else -> NanoHTTPD.Response.Status.INTERNAL_ERROR

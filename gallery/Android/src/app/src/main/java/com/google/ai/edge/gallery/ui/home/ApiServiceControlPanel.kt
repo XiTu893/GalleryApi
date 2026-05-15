@@ -20,6 +20,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Build
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -73,12 +74,20 @@ fun ApiServiceControlPanel(modifier: Modifier = Modifier) {
                 }
             }
         }
-        context.registerReceiver(
-            receiver, IntentFilter(ApiServerService.ACTION_PORT_UPDATED),
-            Context.RECEIVER_NOT_EXPORTED, null
-        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.registerReceiver(
+                receiver, IntentFilter(ApiServerService.ACTION_PORT_UPDATED),
+                Context.RECEIVER_NOT_EXPORTED, null
+            )
+        } else {
+            context.registerReceiver(
+                receiver, IntentFilter(ApiServerService.ACTION_PORT_UPDATED)
+            )
+        }
         onDispose {
-            context.unregisterReceiver(receiver)
+            try {
+                context.unregisterReceiver(receiver)
+            } catch (_: Exception) {}
         }
     }
 

@@ -83,7 +83,7 @@ class ApiService(
     }
 
     private fun corsPreflightResponse(): Response {
-        val response = newFixedLengthResponse(Status.OK, "text/plain", "")
+        val response = NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.OK, "text/plain", "")
         addCorsHeaders(response)
         return response
     }
