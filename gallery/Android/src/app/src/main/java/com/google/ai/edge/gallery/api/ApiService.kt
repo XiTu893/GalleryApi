@@ -77,6 +77,9 @@ class ApiService(
         } catch (e: IOException) {
             Log.e(TAG, "Error parsing request body", e)
             return null
+        } catch (e: NanoHTTPD.ResponseException) {
+            Log.e(TAG, "Response exception parsing body", e)
+            return null
         }
 
         return files["postData"]

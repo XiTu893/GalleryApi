@@ -55,6 +55,7 @@ class ChatCompletionHandler(
 
         val request = try {
             gson.fromJson(body, ChatCompletionRequest::class.java)
+                ?: return ResponseBuilder.badRequest("Request body cannot be null")
         } catch (e: JsonSyntaxException) {
             return ResponseBuilder.badRequest("Invalid JSON: ${e.message}")
         }

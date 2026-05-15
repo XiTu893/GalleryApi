@@ -34,6 +34,7 @@ import com.google.ai.edge.gallery.runtime.runtimeHelper
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.ceil
 
@@ -150,9 +151,9 @@ class LiteRtAdapter(private val context: Context) {
         }
 
         val prompt = buildPrompt(request.messages)
-        val promptTokens = estimateTokens(prompt)
         val completionId = "chatcmpl-${UUID.randomUUID().toString().replace("-", "").take(24)}"
         val created = System.currentTimeMillis() / 1000
+        val doneCalled = AtomicBoolean(false)
 
         onChunk(
             ChatCompletionChunk(
@@ -170,9 +171,13 @@ class LiteRtAdapter(private val context: Context) {
         )
 
         var totalContent = StringBuilder()
+        val safeOnDone: () -> Unit = {
+            if (doneCalled.compareAndSet(false, true)) {
+                onDone()
+            }
+        }
         val resultListener: ResultListener = { partialResult, done, _ ->
             if (done) {
-                val completionTokens = estimateTokens(totalContent.toString())
                 onChunk(
                     ChatCompletionChunk(
                         id = completionId,
@@ -187,7 +192,7 @@ class LiteRtAdapter(private val context: Context) {
                         )
                     )
                 )
-                onDone()
+                safeOnDone()
             } else {
                 totalContent.append(partialResult)
                 onChunk(
@@ -208,7 +213,7 @@ class LiteRtAdapter(private val context: Context) {
         }
 
         val cleanUpListener = {
-            onDone()
+            safeOnDone()
         }
 
         val errorCb: (String) -> Unit = { errorMessage ->
