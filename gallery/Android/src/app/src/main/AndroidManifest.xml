@@ -138,6 +138,11 @@
             android:permission="android.permission.BIND_JOB_SERVICE" />
 
         <service
+            android:name=".api.ApiServerService"
+            android:foregroundServiceType="dataSync"
+            android:exported="false" />
+
+        <service
             android:name=".GalleryFcmMessagingService"
             android:exported="false">
             <intent-filter>

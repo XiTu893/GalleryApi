@@ -28,6 +28,10 @@ import com.google.ai.edge.gallery.GalleryLifecycleProvider
 import com.google.ai.edge.gallery.SettingsSerializer
 import com.google.ai.edge.gallery.SkillsSerializer
 import com.google.ai.edge.gallery.UserDataSerializer
+import com.google.ai.edge.gallery.api.ApiConfig
+import com.google.ai.edge.gallery.api.TokenManager
+import com.google.ai.edge.gallery.api.inference.LiteRtAdapter
+import com.google.ai.edge.gallery.api.inference.ModelRegistry
 import com.google.ai.edge.gallery.data.DataStoreRepository
 import com.google.ai.edge.gallery.data.DefaultDataStoreRepository
 import com.google.ai.edge.gallery.data.DefaultDownloadRepository
@@ -182,5 +186,29 @@ internal object AppModule {
     lifecycleProvider: AppLifecycleProvider,
   ): DownloadRepository {
     return DefaultDownloadRepository(context, lifecycleProvider)
+  }
+
+  @Provides
+  @Singleton
+  fun provideTokenManager(@ApplicationContext context: Context): TokenManager {
+    return TokenManager(context)
+  }
+
+  @Provides
+  @Singleton
+  fun provideApiConfig(@ApplicationContext context: Context): ApiConfig {
+    return ApiConfig(context)
+  }
+
+  @Provides
+  @Singleton
+  fun provideModelRegistry(@ApplicationContext context: Context): ModelRegistry {
+    return ModelRegistry.getInstance(context)
+  }
+
+  @Provides
+  @Singleton
+  fun provideLiteRtAdapter(@ApplicationContext context: Context): LiteRtAdapter {
+    return LiteRtAdapter(context)
   }
 }

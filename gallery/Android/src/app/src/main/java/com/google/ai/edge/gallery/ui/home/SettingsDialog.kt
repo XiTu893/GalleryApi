@@ -291,6 +291,9 @@ fun SettingsDialog(
             }
           }
 
+          // API Service control panel.
+          ApiServiceControlPanel()
+
           // Third party licenses.
           Column(modifier = Modifier.fillMaxWidth().semantics(mergeDescendants = true) {}) {
             Text(

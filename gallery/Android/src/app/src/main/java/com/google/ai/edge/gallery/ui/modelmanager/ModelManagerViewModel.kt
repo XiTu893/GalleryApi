@@ -25,6 +25,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.ai.edge.gallery.AppLifecycleProvider
 import com.google.ai.edge.gallery.BuildConfig
 import com.google.ai.edge.gallery.R
+import com.google.ai.edge.gallery.api.inference.ModelRegistry
 import com.google.ai.edge.gallery.common.ProjectConfig
 import com.google.ai.edge.gallery.common.SystemPromptHelper
 import com.google.ai.edge.gallery.common.getJsonResponse
@@ -450,6 +451,7 @@ constructor(
             model = model,
             status = ModelInitializationStatusType.INITIALIZED,
           )
+          ModelRegistry.getInstance(getApplication()).registerModel(model)
           if (model.cleanUpAfterInit) {
             Log.d(TAG, "Model '${model.name}' needs cleaning up after init.")
             cleanupModel(context = context, task = task, model = model)
@@ -497,6 +499,7 @@ constructor(
       val onDoneFn: () -> Unit = {
         model.instance = null
         model.initializing = false
+        ModelRegistry.getInstance(getApplication()).unregisterModel(model.name)
         updateModelInitializationStatus(
           model = model,
           status = ModelInitializationStatusType.NOT_INITIALIZED,
