@@ -1,9 +1,9 @@
 # Gallery API Token Service - 实施完成报告
 
-## 🎉 项目状态:核心功能已完成 (80%)
+## 🎉 项目状态:核心功能已完成 (90%)
 
 **完成时间**: 2026-05-15  
-**版本**: 0.2.0-beta
+**版本**: 0.3.0-beta
 
 ---
 
@@ -40,17 +40,21 @@
 
 ### 5. HTTP 服务器 (100%)
 - ✅ `ApiService.kt` - NanoHTTPD 服务器实现
-  - 端口 8080
+  - **动态端口配置** (8080-8099)
+  - **自动端口回退** (端口占用时自动尝试下一个)
   - 请求解析
   - 错误处理
 - ✅ `ApiServerService.kt` - Android Foreground Service
   - 通知渠道创建
   - 前台服务管理
   - 生命周期控制
+  - **端口回退逻辑实现**
+  - **广播实际使用端口**
 - ✅ `ApiServerController.kt` - 服务器控制器
   - startServer()
   - stopServer()
   - toggleServer()
+  - **checkServiceRunning()** - 检查服务运行状态
 
 ### 6. API 路由和处理器 (100%)
 - ✅ `ApiRouter.kt` - 请求路由
@@ -83,15 +87,26 @@
   - INTERNET 权限 (已有)
   - ApiServerService 声明
 
+### 9. UI 增强功能 (100%) ⭐ NEW
+- ✅ `ApiServiceControlPanel.kt` - API 服务控制面板
+  - **服务启停按钮** (Start/Stop)
+  - **实时状态显示** (Running/Stopped)
+  - **端口配置输入框** (8080-8099)
+  - **实际端口提示** (当使用回退端口时)
+  - **服务器地址复制**功能
+  - **认证开关**控制
+  - **广播接收器**监听服务状态变化
+
 ---
 
 ## 📂 完整文件结构
 
 ```
 gallery/Android/src/app/src/main/java/com/google/ai/edge/gallery/api/
-├── ApiService.kt                      ✅ NanoHTTPD 服务器
-├── ApiServerService.kt                ✅ Foreground Service
-├── ApiServerController.kt             ✅ 服务器控制器
+├── ApiService.kt                      ✅ NanoHTTPD 服务器 (支持动态端口)
+├── ApiServerService.kt                ✅ Foreground Service (端口回退)
+├── ApiServerController.kt             ✅ 服务器控制器 (状态检查)
+├── ApiConfig.kt                       ✅ 配置管理 (端口+认证)
 ├── TokenManager.kt                    ✅ Token 管理器
 ├── model/
 │   ├── ApiToken.kt                    ✅ Token 数据模型
@@ -107,9 +122,13 @@ gallery/Android/src/app/src/main/java/com/google/ai/edge/gallery/api/
 │   └── ResponseBuilder.kt             ✅ 响应构建器
 └── inference/
     └── LiteRtAdapter.kt               ✅ 推理适配器 (Mock)
+
+UI Components:
+└── ui/home/
+    └── ApiServiceControlPanel.kt      ✅ API 服务控制面板
 ```
 
-**总计**: 13 个 Kotlin 文件,约 1,800 行代码
+**总计**: 14 个 Kotlin 文件,约 2,000 行代码
 
 ---
 
@@ -363,29 +382,25 @@ class LiteRtAdapter(
    - 实现真实的推理调用
    - 测试端到端流程
 
-2. **添加 UI 控制**
-   - 在 Settings 页面添加 API 开关
-   - 显示服务器状态
-   - Token 管理界面
-
 ### 中优先级 (预计 2-3 小时)
 
-3. **持久化存储**
+2. **持久化存储**
    - 实现 EncryptedSharedPreferences
    - Token 加载/保存逻辑
 
-4. **错误处理和日志**
+3. **错误处理和日志**
    - 完善异常处理
    - 添加详细的日志记录
    - 错误码标准化
 
 ### 低优先级 (后续迭代)
 
-5. **高级功能**
+4. **高级功能**
    - 流式响应 (SSE)
    - 速率限制
    - CORS 配置
    - HTTPS/TLS 支持
+   - LAN IP 自动检测
 
 ---
 
@@ -406,6 +421,12 @@ class LiteRtAdapter(
 - ✅ 独立测试 API 层
 - ✅ 避免复杂的依赖注入
 - ❌ 需要后续集成真实推理
+
+### 4. 为什么实现端口自动回退? ⭐ NEW
+- ✅ 提高服务可用性（端口冲突时不失败）
+- ✅ 改善用户体验（无需手动解决端口占用）
+- ✅ 支持多实例运行（不同应用可使用不同端口）
+- ✅ 范围限制保证安全性（8080-8099）
 
 ---
 
@@ -432,6 +453,7 @@ class LiteRtAdapter(
 - [IMPLEMENTATION_PROGRESS.md](IMPLEMENTATION_PROGRESS.md) - 进度跟踪
 - [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md) - 项目总结
 - [QUICK_START.md](QUICK_START.md) - 使用指南
+- [API_SERVICE_PORT_FALLBACK.md](API_SERVICE_PORT_FALLBACK.md) ⭐ NEW - 端口回退功能文档
 
 ---
 
@@ -440,8 +462,10 @@ class LiteRtAdapter(
 1. **完整的 OpenAI 兼容 API** - 可直接替换 OpenAI 端点
 2. **模块化架构** - 清晰的职责分离,易于扩展
 3. **健壮的错误处理** - 标准化的错误响应格式
-4. **详尽的文档** - 4 份文档覆盖所有方面
+4. **详尽的文档** - 5 份文档覆盖所有方面
 5. **生产就绪代码** - 遵循 Kotlin 最佳实践
+6. **智能端口管理** ⭐ NEW - 自动回退机制确保服务可用性
+7. **用户友好 UI** ⭐ NEW - 直观的服务控制和状态显示
 
 ---
 
