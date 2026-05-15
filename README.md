@@ -4,6 +4,14 @@
 
 为 Google AI Edge Gallery 添加本地 API Token 服务，提供 OpenAI 兼容的 `/v1/chat/completions` 接口。
 
+## 📦 下载安装
+
+[![Download APK](https://img.shields.io/github/v/release/XiTu893/GalleryApi?label=Download%20APK&color=brightgreen)](https://github.com/XiTu893/GalleryApi/releases/latest)
+
+从 [GitHub Releases](https://github.com/XiTu893/GalleryApi/releases/latest) 下载最新 APK，安装到 Android 设备（API 31+ / Android 12+）即可使用。
+
+> 每次 push 到 master 分支会自动构建并发布最新 APK 到 Release 页面。
+
 ## 🎯 项目目标
 
 将 Google AI Edge Gallery 改造成支持本地 API 服务的 Android 应用，允许外部应用通过 HTTP API 调用设备上运行的 LiteRT-LM 模型（如 Gemma、Qwen 等），实现：
