@@ -27,7 +27,6 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.ai.edge.gallery.MainActivity
 import com.google.ai.edge.gallery.R
 
@@ -116,7 +115,8 @@ class ApiServerService : Service() {
     private fun broadcastPort(port: Int) {
         val intent = Intent(ACTION_PORT_UPDATED)
         intent.putExtra(EXTRA_PORT, port)
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
+        intent.setPackage(packageName)
+        sendBroadcast(intent)
     }
 
     private fun createNotificationChannel() {

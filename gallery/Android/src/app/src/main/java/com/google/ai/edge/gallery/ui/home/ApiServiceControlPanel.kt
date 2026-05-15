@@ -50,7 +50,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.ai.edge.gallery.api.ApiConfig
 import com.google.ai.edge.gallery.api.ApiServerController
 import com.google.ai.edge.gallery.api.ApiServerService
@@ -74,11 +73,12 @@ fun ApiServiceControlPanel(modifier: Modifier = Modifier) {
                 }
             }
         }
-        LocalBroadcastManager.getInstance(context).registerReceiver(
-            receiver, IntentFilter(ApiServerService.ACTION_PORT_UPDATED)
+        context.registerReceiver(
+            receiver, IntentFilter(ApiServerService.ACTION_PORT_UPDATED),
+            Context.RECEIVER_NOT_EXPORTED, null
         )
         onDispose {
-            LocalBroadcastManager.getInstance(context).unregisterReceiver(receiver)
+            context.unregisterReceiver(receiver)
         }
     }
 

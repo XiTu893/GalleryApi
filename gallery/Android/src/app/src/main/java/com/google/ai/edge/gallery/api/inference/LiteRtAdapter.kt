@@ -29,9 +29,8 @@ import com.google.ai.edge.gallery.api.model.ModelInfo
 import com.google.ai.edge.gallery.api.model.ModelListResponse
 import com.google.ai.edge.gallery.api.model.Usage
 import com.google.ai.edge.gallery.data.Model
-import com.google.ai.edge.gallery.runtime.LlmModelHelper
 import com.google.ai.edge.gallery.runtime.ResultListener
-import com.google.ai.edge.gallery.ui.llmchat.LlmModelInstance
+import com.google.ai.edge.gallery.runtime.runtimeHelper
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
