@@ -77,7 +77,7 @@ fun ApiServiceControlPanel(modifier: Modifier = Modifier) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             context.registerReceiver(
                 receiver, IntentFilter(ApiServerService.ACTION_PORT_UPDATED),
-                Context.RECEIVER_NOT_EXPORTED, null
+                Context.RECEIVER_NOT_EXPORTED
             )
         } else {
             context.registerReceiver(

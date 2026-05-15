@@ -451,7 +451,7 @@ constructor(
             model = model,
             status = ModelInitializationStatusType.INITIALIZED,
           )
-          ModelRegistry.getInstance(getApplication()).registerModel(model)
+          ModelRegistry.getInstance(context).registerModel(model)
           if (model.cleanUpAfterInit) {
             Log.d(TAG, "Model '${model.name}' needs cleaning up after init.")
             cleanupModel(context = context, task = task, model = model)
@@ -499,7 +499,7 @@ constructor(
       val onDoneFn: () -> Unit = {
         model.instance = null
         model.initializing = false
-        ModelRegistry.getInstance(getApplication()).unregisterModel(model.name)
+        ModelRegistry.getInstance(context).unregisterModel(model.name)
         updateModelInitializationStatus(
           model = model,
           status = ModelInitializationStatusType.NOT_INITIALIZED,
