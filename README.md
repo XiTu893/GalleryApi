@@ -302,9 +302,15 @@ Apache License 2.0 (与 Google AI Edge Gallery 保持一致)
 
 如有问题或建议，请提交 Issue。
 
+## ☕ 支持项目
+
+如果这个项目对你有帮助，欢迎扫描下方二维码捐赠支持！
+
+<img src="doc/QrReward.jpg" alt="捐赠二维码" width="200" />
+
 ---
 
-**最后更新**: 2026-05-15  
+**最后更新**: 2026-05-16  
 **版本**: 0.2.0-alpha  
 **状态**: 核心功能完成，等待 LiteRT-LM 集成  
 **仓库**: https://github.com/XiTu893/GalleryApi
