@@ -243,7 +243,7 @@ Apache License 2.0 (与 Google AI Edge Gallery 保持一致)
 
 ## 📞 联系方式
 
-如有问题或建议，请提交 Issue。
+如有问题或建议，请提交 Issue 或发送邮件至 28491599@qq.com。
 
 ## ☕ 支持项目
 
