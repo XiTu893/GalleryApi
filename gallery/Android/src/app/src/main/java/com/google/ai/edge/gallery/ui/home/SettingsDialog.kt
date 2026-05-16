@@ -20,6 +20,9 @@ import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
 import android.app.UiModeManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -27,10 +30,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -62,6 +68,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
@@ -69,6 +77,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.google.ai.edge.gallery.BuildConfig
@@ -113,7 +122,7 @@ fun SettingsDialog(
       modifier =
         Modifier.fillMaxWidth().clickable(
           interactionSource = interactionSource,
-          indication = null, // Disable the ripple effect
+          indication = null,
         ) {
           focusManager.clearFocus()
         },
@@ -123,16 +132,14 @@ fun SettingsDialog(
         modifier = Modifier.padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
       ) {
-        // Dialog title and subtitle.
         Column {
           Text(
-            "Settings",
+            "设置",
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(bottom = 8.dp),
           )
-          // Subtitle.
           Text(
-            "App version: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
+            "应用版本: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
             style = labelSmallNarrow,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.offset(y = (-6).dp),
@@ -144,10 +151,10 @@ fun SettingsDialog(
           verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
           val context = LocalContext.current
-          // Theme switcher.
+
           Column(modifier = Modifier.fillMaxWidth().semantics(mergeDescendants = true) {}) {
             Text(
-              "Theme",
+              "主题",
               style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium),
             )
             MultiChoiceSegmentedButtonRow {
@@ -157,18 +164,8 @@ fun SettingsDialog(
                     SegmentedButtonDefaults.itemShape(index = index, count = THEME_OPTIONS.size),
                   onCheckedChange = {
                     selectedTheme = theme
-
-                    // Update theme settings.
-                    // This will update app's theme.
                     ThemeSettings.themeOverride.value = theme
-
-                    // Save to data store.
                     modelManagerViewModel.saveThemeOverride(theme)
-
-                    // Update ui mode.
-                    //
-                    // This is necessary to make other Activities launched from MainActivity to have
-                    // the correct theme.
                     val uiModeManager =
                       context.applicationContext.getSystemService(Context.UI_MODE_SERVICE)
                         as UiModeManager
@@ -187,16 +184,14 @@ fun SettingsDialog(
             }
           }
 
-          // HF Token management.
           Column(
             modifier = Modifier.fillMaxWidth().semantics(mergeDescendants = true) {},
             verticalArrangement = Arrangement.spacedBy(4.dp),
           ) {
             Text(
-              "HuggingFace access token",
+              "HuggingFace 访问令牌",
               style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium),
             )
-            // Show the start of the token.
             val curHfToken = hfToken
             if (curHfToken != null && curHfToken.accessToken.isNotEmpty()) {
               Text(
@@ -205,18 +200,18 @@ fun SettingsDialog(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
               )
               Text(
-                "Expires at: ${dateFormatter.format(Instant.ofEpochMilli(curHfToken.expiresAtMs))}",
+                "过期时间: ${dateFormatter.format(Instant.ofEpochMilli(curHfToken.expiresAtMs))}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
               )
             } else {
               Text(
-                "Not available",
+                "不可用",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
               )
               Text(
-                "The token will be automatically retrieved when a gated model is downloaded",
+                "下载受限模型时将自动获取令牌",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
               )
@@ -229,7 +224,7 @@ fun SettingsDialog(
                 },
                 enabled = curHfToken != null,
               ) {
-                Text("Clear")
+                Text("清除")
               }
               val handleSaveToken = {
                 modelManagerViewModel.saveAccessToken(
@@ -270,7 +265,7 @@ fun SettingsDialog(
                     Box(modifier = Modifier.padding(start = 16.dp).weight(1f)) {
                       if (customHfToken.isEmpty()) {
                         Text(
-                          "Enter token manually",
+                          "手动输入令牌",
                           color = MaterialTheme.colorScheme.onSurfaceVariant,
                           style = MaterialTheme.typography.bodySmall,
                         )
@@ -291,28 +286,23 @@ fun SettingsDialog(
             }
           }
 
-          // API Service control panel.
           ApiServiceControlPanel()
 
-          // Third party licenses.
           Column(modifier = Modifier.fillMaxWidth().semantics(mergeDescendants = true) {}) {
             Text(
-              "Third-party libraries",
+              "第三方库",
               style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium),
             )
             OutlinedButton(
               onClick = {
-                // Create an Intent to launch a license viewer that displays a list of
-                // third-party library names. Clicking a name will show its license content.
                 val intent = Intent(context, OssLicensesMenuActivity::class.java)
                 context.startActivity(intent)
               }
             ) {
-              Text("View licenses")
+              Text("查看许可证")
             }
           }
 
-          // Tos
           Column(modifier = Modifier.fillMaxWidth().semantics(mergeDescendants = true) {}) {
             Text(
               stringResource(R.string.settings_dialog_tos_title),
@@ -332,15 +322,15 @@ fun SettingsDialog(
               modifier = Modifier.padding(top = 8.dp),
             )
           }
+
+          DonationSection(context)
         }
 
-        // Button row.
         Row(
           modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
           horizontalArrangement = Arrangement.End,
         ) {
-          // Close button
-          Button(onClick = { onDismissed() }) { Text("Close") }
+          Button(onClick = { onDismissed() }) { Text("关闭") }
         }
       }
     }
@@ -351,11 +341,81 @@ fun SettingsDialog(
   }
 }
 
+@Composable
+private fun DonationSection(context: Context) {
+    Column(
+        modifier = Modifier.fillMaxWidth().semantics(mergeDescendants = true) {},
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            "支持项目",
+            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium),
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Text(
+            "如果这个项目对你有帮助，欢迎扫描下方二维码捐赠支持！",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        val qrBitmap = remember {
+            try {
+                context.assets.open("QrReward.jpg").use { inputStream ->
+                    BitmapFactory.decodeStream(inputStream)
+                }
+            } catch (_: Exception) {
+                try {
+                    val resId = context.resources.getIdentifier("qr_reward", "drawable", context.packageName)
+                    if (resId != 0) BitmapFactory.decodeResource(context.resources, resId) else null
+                } catch (_: Exception) {
+                    null
+                }
+            }
+        }
+        if (qrBitmap != null) {
+            Image(
+                bitmap = qrBitmap.asImageBitmap(),
+                contentDescription = "捐赠二维码",
+                modifier = Modifier
+                    .size(180.dp)
+                    .clickable {
+                        try {
+                            val wechatIntent = Intent(Intent.ACTION_VIEW)
+                            wechatIntent.setPackage("com.tencent.mm")
+                            wechatIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                            context.startActivity(wechatIntent)
+                        } catch (_: Exception) {
+                            val storeIntent = Intent(Intent.ACTION_VIEW)
+                            storeIntent.data = android.net.Uri.parse("market://details?id=com.tencent.mm")
+                            storeIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                            try {
+                                context.startActivity(storeIntent)
+                            } catch (_: Exception) {
+                                val webIntent = Intent(Intent.ACTION_VIEW)
+                                webIntent.data = android.net.Uri.parse("https://weixin.qq.com/")
+                                webIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                                context.startActivity(webIntent)
+                            }
+                        }
+                    },
+                contentScale = ContentScale.Fit,
+            )
+        }
+        Text(
+            "点击二维码打开微信扫码",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
 private fun themeLabel(theme: Theme): String {
   return when (theme) {
-    Theme.THEME_AUTO -> "Auto"
-    Theme.THEME_LIGHT -> "Light"
-    Theme.THEME_DARK -> "Dark"
-    else -> "Unknown"
+    Theme.THEME_AUTO -> "跟随系统"
+    Theme.THEME_LIGHT -> "浅色"
+    Theme.THEME_DARK -> "深色"
+    else -> "未知"
   }
 }

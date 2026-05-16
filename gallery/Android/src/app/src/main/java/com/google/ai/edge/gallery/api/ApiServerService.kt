@@ -25,7 +25,10 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
+import android.net.wifi.WifiManager
 import android.util.Log
+import java.net.Inet4Address
+import java.net.NetworkInterface
 import androidx.core.app.NotificationCompat
 import com.google.ai.edge.gallery.MainActivity
 import com.google.ai.edge.gallery.R
@@ -123,10 +126,10 @@ class ApiServerService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 NOTIFICATION_CHANNEL_ID,
-                "API Service",
+                "API 服务",
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Local LLM API Server"
+                description = "本地大模型 API 服务器"
                 setShowBadge(false)
             }
             val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -147,8 +150,8 @@ class ApiServerService : Service() {
 
     private fun updateNotificationError() {
         val notification = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
-            .setContentTitle("Edge Gallery API")
-            .setContentText("Failed to start - all ports occupied")
+            .setContentTitle("Gallery API 服务")
+            .setContentText("启动失败 - 所有端口被占用")
             .setSmallIcon(android.R.drawable.ic_dialog_alert)
             .setOngoing(true)
             .build()
@@ -158,10 +161,11 @@ class ApiServerService : Service() {
     }
 
     private fun buildNotification(port: Int): Notification {
+        val ip = getLocalIpAddress()
         val contentText = if (port > 0) {
-            "Running on http://127.0.0.1:$port"
+            "运行中 http://$ip:$port"
         } else {
-            "Starting..."
+            "正在启动..."
         }
 
         val intent = Intent(this, MainActivity::class.java).apply {
@@ -173,12 +177,38 @@ class ApiServerService : Service() {
         )
 
         return NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
-            .setContentTitle("Edge Gallery API")
+            .setContentTitle("Gallery API 服务")
             .setContentText(contentText)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setOngoing(true)
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()
+    }
+
+    private fun getLocalIpAddress(): String {
+        try {
+            val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
+            val wifiIp = wifiManager?.connectionInfo?.ipAddress ?: 0
+            if (wifiIp != 0) {
+                return String.format(
+                    "%d.%d.%d.%d",
+                    wifiIp and 0xff,
+                    wifiIp shr 8 and 0xff,
+                    wifiIp shr 16 and 0xff,
+                    wifiIp shr 24 and 0xff
+                )
+            }
+            val interfaces = NetworkInterface.getNetworkInterfaces() ?: return "127.0.0.1"
+            for (intf in interfaces) {
+                if (intf.isLoopback || !intf.isUp) continue
+                for (addr in intf.inetAddresses) {
+                    if (addr is Inet4Address && !addr.isLoopbackAddress) {
+                        return addr.hostAddress ?: "127.0.0.1"
+                    }
+                }
+            }
+        } catch (_: Exception) {}
+        return "127.0.0.1"
     }
 }

@@ -20,6 +20,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.net.wifi.WifiManager
 import android.os.Build
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
@@ -54,6 +55,34 @@ import androidx.compose.ui.unit.dp
 import com.google.ai.edge.gallery.api.ApiConfig
 import com.google.ai.edge.gallery.api.ApiServerController
 import com.google.ai.edge.gallery.api.ApiServerService
+import java.net.Inet4Address
+import java.net.NetworkInterface
+
+private fun getLocalIpAddress(context: Context): String {
+    try {
+        val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
+        val wifiIp = wifiManager?.connectionInfo?.ipAddress ?: 0
+        if (wifiIp != 0) {
+            return String.format(
+                "%d.%d.%d.%d",
+                wifiIp and 0xff,
+                wifiIp shr 8 and 0xff,
+                wifiIp shr 16 and 0xff,
+                wifiIp shr 24 and 0xff
+            )
+        }
+        val interfaces = NetworkInterface.getNetworkInterfaces() ?: return "127.0.0.1"
+        for (intf in interfaces) {
+            if (intf.isLoopback || !intf.isUp) continue
+            for (addr in intf.inetAddresses) {
+                if (addr is Inet4Address && !addr.isLoopbackAddress) {
+                    return addr.hostAddress ?: "127.0.0.1"
+                }
+            }
+        }
+    } catch (_: Exception) {}
+    return "127.0.0.1"
+}
 
 @Composable
 fun ApiServiceControlPanel(modifier: Modifier = Modifier) {
@@ -102,7 +131,7 @@ fun ApiServiceControlPanel(modifier: Modifier = Modifier) {
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                "API Service",
+                "API 服务",
                 style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium),
             )
 
@@ -112,7 +141,7 @@ fun ApiServiceControlPanel(modifier: Modifier = Modifier) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    if (isServerRunning) "Running" else "Stopped",
+                    if (isServerRunning) "运行中" else "已停止",
                     style = MaterialTheme.typography.bodyMedium,
                     color = if (isServerRunning) MaterialTheme.colorScheme.primary
                     else MaterialTheme.colorScheme.error
@@ -124,7 +153,7 @@ fun ApiServiceControlPanel(modifier: Modifier = Modifier) {
                         },
                         enabled = !isServerRunning
                     ) {
-                        Text("Start")
+                        Text("启动")
                     }
                     OutlinedButton(
                         onClick = {
@@ -134,13 +163,14 @@ fun ApiServiceControlPanel(modifier: Modifier = Modifier) {
                         },
                         enabled = isServerRunning
                     ) {
-                        Text("Stop")
+                        Text("停止")
                     }
                 }
             }
 
             if (isServerRunning && actualPort > 0) {
-                val address = "http://127.0.0.1:$actualPort"
+                val localIp = remember { getLocalIpAddress(context) }
+                val address = "http://$localIp:$actualPort"
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -158,17 +188,17 @@ fun ApiServiceControlPanel(modifier: Modifier = Modifier) {
                             clipboard.setPrimaryClip(
                                 android.content.ClipData.newPlainText("API Address", address)
                             )
-                            Toast.makeText(context, "Copied!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "已复制！", Toast.LENGTH_SHORT).show()
                         }
                     ) {
-                        Text("Copy")
+                        Text("复制")
                     }
                 }
 
                 val configuredPort = apiConfig.serverPort
                 if (actualPort != configuredPort) {
                     Text(
-                        "\u2139\uFE0F Using port $actualPort (requested $configuredPort was unavailable)",
+                        "\u2139\uFE0F 使用端口 $actualPort（请求的端口 $configuredPort 不可用）",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -187,7 +217,7 @@ fun ApiServiceControlPanel(modifier: Modifier = Modifier) {
                             }
                         }
                     },
-                    label = { Text("Server Port (${ApiConfig.MIN_PORT}-${ApiConfig.MAX_PORT})") },
+                    label = { Text("服务端口 (${ApiConfig.MIN_PORT}-${ApiConfig.MAX_PORT})") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
@@ -203,12 +233,12 @@ fun ApiServiceControlPanel(modifier: Modifier = Modifier) {
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "Require API Key",
+                        "需要 API Key",
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
-                        if (isAuthEnabled) "Clients must provide a valid token"
-                        else "No authentication required (like Ollama)",
+                        if (isAuthEnabled) "客户端必须提供有效的 Token"
+                        else "无需认证（类似 Ollama）",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -224,7 +254,7 @@ fun ApiServiceControlPanel(modifier: Modifier = Modifier) {
 
             if (!isAuthEnabled) {
                 Text(
-                    "\u26A0\uFE0F Warning: Anyone on your network can access the API without authentication",
+                    "\u26A0\uFE0F 警告：网络中的任何人都可以在无需认证的情况下访问 API",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error
                 )
