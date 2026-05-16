@@ -6,13 +6,13 @@ import com.google.ai.edge.gallery.api.response.ResponseBuilder
 import com.google.ai.edge.gallery.api.router.ApiRouter
 import fi.iki.elonen.NanoHTTPD
 import java.io.IOException
-import javax.inject.Inject
 
-class ApiService @Inject constructor(
+class ApiService(
     private val tokenManager: TokenManager,
     private val apiConfig: ApiConfig,
     private val liteRtAdapter: LiteRtAdapter,
-) : NanoHTTPD(apiConfig.serverPort) {
+    port: Int,
+) : NanoHTTPD(port) {
 
     companion object {
         private const val TAG = "ApiService"

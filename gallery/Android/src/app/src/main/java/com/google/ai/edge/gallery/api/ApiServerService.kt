@@ -78,8 +78,7 @@ class ApiServerService : Service() {
 
         while (currentPort <= ApiConfig.MAX_PORT) {
             try {
-                val service = ApiService(tokenManager, apiConfig, liteRtAdapter)
-                service.setPort(currentPort)
+                val service = ApiService(tokenManager, apiConfig, liteRtAdapter, currentPort)
                 service.start()
                 apiService = service
                 return currentPort
