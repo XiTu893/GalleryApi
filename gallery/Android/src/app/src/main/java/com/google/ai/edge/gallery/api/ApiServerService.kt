@@ -1,19 +1,3 @@
-/*
- * Copyright 2026 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.google.ai.edge.gallery.api
 
 import android.app.Notification
@@ -32,16 +16,22 @@ import java.net.NetworkInterface
 import androidx.core.app.NotificationCompat
 import com.google.ai.edge.gallery.MainActivity
 import com.google.ai.edge.gallery.R
+import com.google.ai.edge.gallery.api.inference.LiteRtAdapter
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class ApiServerService : Service() {
     companion object {
-        const val ACTION_PORT_UPDATED = "com.google.ai.edge.gallery.api.PORT_UPDATED"
-        const val EXTRA_PORT = "extra_port"
         const val NOTIFICATION_CHANNEL_ID = "api_service_channel"
         const val NOTIFICATION_ID = 1001
 
         private const val TAG = "ApiServerService"
     }
+
+    @Inject lateinit var tokenManager: TokenManager
+    @Inject lateinit var apiConfig: ApiConfig
+    @Inject lateinit var liteRtAdapter: LiteRtAdapter
 
     private var apiService: ApiService? = null
     private var actualPort: Int = 0
@@ -69,14 +59,12 @@ class ApiServerService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     private fun startServer() {
-        val apiConfig = ApiConfig(this)
         val startPort = apiConfig.serverPort
 
         try {
             actualPort = startServerWithFallback(startPort)
             Log.i(TAG, "API server started on port $actualPort")
             updateNotification(actualPort)
-            broadcastPort(actualPort)
             ApiServerController.updateState(true, actualPort)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to start API server", e)
@@ -90,7 +78,8 @@ class ApiServerService : Service() {
 
         while (currentPort <= ApiConfig.MAX_PORT) {
             try {
-                val service = ApiService(applicationContext, currentPort)
+                val service = ApiService(tokenManager, apiConfig, liteRtAdapter)
+                service.setPort(currentPort)
                 service.start()
                 apiService = service
                 return currentPort
@@ -113,13 +102,6 @@ class ApiServerService : Service() {
             }
             apiService = null
         }
-    }
-
-    private fun broadcastPort(port: Int) {
-        val intent = Intent(ACTION_PORT_UPDATED)
-        intent.putExtra(EXTRA_PORT, port)
-        intent.setPackage(packageName)
-        sendBroadcast(intent)
     }
 
     private fun createNotificationChannel() {

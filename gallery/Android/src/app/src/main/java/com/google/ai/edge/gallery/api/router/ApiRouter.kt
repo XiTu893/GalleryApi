@@ -27,7 +27,6 @@ import com.google.ai.edge.gallery.api.response.ResponseBuilder
 import fi.iki.elonen.NanoHTTPD
 
 class ApiRouter(
-    private val context: Context,
     private val tokenManager: TokenManager,
     private val apiConfig: ApiConfig,
     private val liteRtAdapter: LiteRtAdapter

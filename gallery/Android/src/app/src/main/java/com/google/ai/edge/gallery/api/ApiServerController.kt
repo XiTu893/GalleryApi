@@ -19,19 +19,20 @@ package com.google.ai.edge.gallery.api
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import com.google.ai.edge.gallery.api.usecase.ServerStatus
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 object ApiServerController {
     private const val TAG = "ApiServerController"
 
-    @Volatile
-    private var isRunning: Boolean = false
-
-    @Volatile
-    private var actualPort: Int = 0
+    private val _serverStatus = MutableStateFlow(ServerStatus())
+    val serverStatusFlow: StateFlow<ServerStatus> = _serverStatus.asStateFlow()
 
     fun startServer(context: Context) {
-        if (isRunning) {
-            Log.w(TAG, "API server is already running on port $actualPort")
+        if (_serverStatus.value.isRunning) {
+            Log.w(TAG, "API server is already running on port ${_serverStatus.value.port}")
             return
         }
         val intent = Intent(context, ApiServerService::class.java)
@@ -39,7 +40,7 @@ object ApiServerController {
     }
 
     fun stopServer(context: Context) {
-        if (!isRunning) {
+        if (!_serverStatus.value.isRunning) {
             Log.w(TAG, "API server is not running")
             return
         }
@@ -47,21 +48,12 @@ object ApiServerController {
         context.stopService(intent)
     }
 
-    fun isServerRunning(): Boolean = isRunning
+    fun isServerRunning(): Boolean = _serverStatus.value.isRunning
 
-    fun getActualPort(): Int = actualPort
-
-    fun getServerAddress(): String {
-        return if (isRunning && actualPort > 0) {
-            "http://127.0.0.1:$actualPort"
-        } else {
-            ""
-        }
-    }
+    fun getActualPort(): Int = _serverStatus.value.port
 
     fun updateState(running: Boolean, port: Int) {
-        isRunning = running
-        actualPort = port
+        _serverStatus.value = ServerStatus(isRunning = running, port = port)
         Log.d(TAG, "State updated: running=$running, port=$port")
     }
 }
