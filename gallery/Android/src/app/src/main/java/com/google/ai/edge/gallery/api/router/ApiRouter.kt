@@ -16,7 +16,6 @@
 
 package com.google.ai.edge.gallery.api.router
 
-import android.content.Context
 import com.google.ai.edge.gallery.api.ApiConfig
 import com.google.ai.edge.gallery.api.TokenManager
 import com.google.ai.edge.gallery.api.handler.ChatCompletionHandler

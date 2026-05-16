@@ -40,7 +40,14 @@ jobs:
         VERSION_NAME="1.0.15"
         SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
         NEW_NAME="GalleryApi-v${VERSION_NAME}-${SHORT_SHA}.apk"
-        mv "${APK_DIR}/app-release-unsigned.apk" "${APK_DIR}/${NEW_NAME}"
+        ORIG_APK=$(ls "${APK_DIR}"/*.apk 2>/dev/null | head -1)
+        if [ -z "$ORIG_APK" ]; then
+          echo "ERROR: No APK found in ${APK_DIR}"
+          ls -la "${APK_DIR}" || true
+          exit 1
+        fi
+        echo "Found APK: ${ORIG_APK}"
+        mv "${ORIG_APK}" "${APK_DIR}/${NEW_NAME}"
         echo "APK_NAME=${NEW_NAME}" >> $GITHUB_ENV
         echo "APK_PATH=${APK_DIR}/${NEW_NAME}" >> $GITHUB_ENV
 

@@ -20,8 +20,8 @@
   <fields>;
 }
 
--keepclassmembers class * {
-    @com.google.ai.edge.gallery.api.model.** <fields>;
+-keepclassmembers class com.google.ai.edge.gallery.api.model.** {
+    <fields>;
 }
 
 -keepnames class * implements java.io.Serializable
