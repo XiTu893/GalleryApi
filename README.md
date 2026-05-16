@@ -1,6 +1,6 @@
 # GalleryApi - 本地大模型 API 服务
 
-![CI Status](https://github.com/XiTu893/GalleryApi/actions/workflows/android-ci.yml/badge.svg) [![Download APK](https://img.shields.io/github/v/release/XiTu893/GalleryApi?label=Download%20APK&color=brightgreen)](https://github.com/XiTu893/GalleryApi/releases/latest)
+![CI Status](https://github.com/XiTu893/GalleryApi/actions/workflows/android-ci.yml/badge.svg) [![Download APK](https://img.shields.io/github/v/release/XiTu893/GalleryApi?label=Download%20APK\&color=brightgreen)](https://github.com/XiTu893/GalleryApi/releases/latest)
 
 为 Google AI Edge Gallery 添加本地大模型 API 服务，提供 OpenAI 兼容的 `/v1/chat/completions` 接口，让外部应用通过 HTTP API 调用设备上运行的 LiteRT-LM 模型（如 Gemma、Qwen 等）。
 
@@ -8,7 +8,7 @@
 
 从 [GitHub Releases](https://github.com/XiTu893/GalleryApi/releases/latest) 下载最新 APK，安装到 Android 设备（API 31+ / Android 12+）即可使用。
 
-> 每次 push 到 master 分支会自动构建并发布最新 APK 到 Release 页面。
+> 每次 push 到 master 分支会自动构建 Release APK 并发布到 Release 页面。
 
 ## ✨ 核心特性
 
@@ -16,9 +16,11 @@
 - ✅ 数据隐私保护（所有计算在本地）
 - ✅ OpenAI API 兼容（无缝切换现有应用）
 - ✅ Token 认证管理（安全访问控制）
-- ✅ UI 控制面板（直观管理 API 服务）
+- ✅ 中文界面（全应用中文化）
+- ✅ 真实 IP 显示（局域网 IP 自动获取）
 - ✅ 流式响应（SSE Server-Sent Events）
-- ✅ 自动发布 APK 到 GitHub Releases
+- ✅ Clean Architecture（UseCase 层 + StateFlow）
+- ✅ Release 构建（代码混淆 + 资源缩减，APK 更小）
 
 ## 📁 项目结构
 
@@ -26,7 +28,7 @@
 GalleryApi/
 ├── .github/
 │   └── workflows/
-│       └── android-ci.yml              # GitHub Actions CI/CD + 自动发布 Release
+│       └── android-ci.yml              # GitHub Actions CI/CD + Release APK
 ├── gallery/
 │   └── Android/src/
 │       └── app/src/main/java/com/google/ai/edge/gallery/
@@ -37,46 +39,54 @@ GalleryApi/
 │           │   ├── router/             # 请求路由
 │           │   ├── inference/          # LiteRT 推理适配器 + ModelRegistry
 │           │   ├── response/           # 统一 JSON 响应构建器
+│           │   ├── usecase/            # UseCase 层（业务逻辑封装）
 │           │   ├── ApiService.kt       # NanoHTTPD 服务器
 │           │   ├── ApiServerService.kt # Android Foreground Service
-│           │   ├── ApiServerController.kt # 服务器生命周期控制
+│           │   ├── ApiServerController.kt # 服务器状态管理（StateFlow）
 │           │   ├── ApiConfig.kt        # API 配置管理（端口/认证开关）
 │           │   └── TokenManager.kt     # Token 生成/验证/撤销
-│           └── ui/home/
-│               └── ApiServiceControlPanel.kt  # API 服务控制面板
-└── doc/                                # 项目文档
+│           ├── ui/home/
+│           │   ├── ApiServiceControlPanel.kt  # API 服务控制面板
+│           │   └── ApiServiceViewModel.kt     # ViewModel（UseCase 中介）
+│           └── di/
+│               └── AppModule.kt        # Hilt 依赖注入模块
+└── doc/
+    └── QrReward.jpg                    # 捐赠二维码
 ```
 
 ## ✅ 已完成的功能
 
 ### 核心功能
 
-| 模块 | 状态 | 说明 |
-|------|------|------|
-| 数据模型层 | ✅ 100% | `ApiToken.kt`, `OpenAiModels.kt` |
-| Token 管理 | ✅ 100% | `TokenManager.kt` - 生成/验证/撤销/统计 |
-| 认证中间件 | ✅ 100% | `AuthMiddleware.kt` - Bearer Token + 可选认证 |
-| API 配置管理 | ✅ 100% | `ApiConfig.kt` - 端口/认证开关/SharedPreferences |
-| HTTP 服务器 | ✅ 100% | `ApiService.kt` + `ApiServerService.kt` 前台服务 |
-| API 路由与处理 | ✅ 100% | `ApiRouter.kt`, `ChatCompletionHandler.kt`, `TokenHandler.kt` |
-| LiteRT 推理适配 | ✅ 100% | `LiteRtAdapter.kt` - 接入 LlmModelHelper，支持同步/流式推理 |
-| 模型注册表 | ✅ 100% | `ModelRegistry.kt` - 桥接 UI 层与 API 服务的模型共享 |
-| UI 控制面板 | ✅ 100% | `ApiServiceControlPanel.kt` - 启停开关/端口显示/认证开关 |
-| CI/CD | ✅ 100% | GitHub Actions 自动编译 + 发布 APK 到 Release |
-| Hilt DI | ✅ 100% | KSP 注解处理，TokenManager/ApiConfig 依赖注入 |
+| 模块          | 状态     | 说明                                                            |
+| ----------- | ------ | ------------------------------------------------------------- |
+| 数据模型层       | ✅ 100% | `ApiToken.kt`, `OpenAiModels.kt`                              |
+| Token 管理    | ✅ 100% | `TokenManager.kt` - 生成/验证/撤销/统计                               |
+| 认证中间件       | ✅ 100% | `AuthMiddleware.kt` - Bearer Token + 可选认证                     |
+| API 配置管理    | ✅ 100% | `ApiConfig.kt` - 端口/认证开关/SharedPreferences                    |
+| HTTP 服务器    | ✅ 100% | `ApiService.kt` + `ApiServerService.kt` 前台服务                  |
+| API 路由与处理   | ✅ 100% | `ApiRouter.kt`, `ChatCompletionHandler.kt`, `TokenHandler.kt` |
+| LiteRT 推理适配 | ✅ 100% | `LiteRtAdapter.kt` - 接入 LlmModelHelper，支持同步/流式推理              |
+| 模型注册表       | ✅ 100% | `ModelRegistry.kt` - 桥接 UI 层与 API 服务的模型共享                     |
+| UseCase 层   | ✅ 100% | 5 个 UseCase 封装业务逻辑，StateFlow 替代 BroadcastReceiver             |
+| ViewModel 层 | ✅ 100% | `ApiServiceViewModel` - UI 与 UseCase 的中介                      |
+| UI 控制面板     | ✅ 100% | 中文界面，真实 IP 显示，ViewModel 驱动                                    |
+| CI/CD       | ✅ 100% | GitHub Actions 自动编译 Release APK + 发布到 Release                 |
+| Hilt DI     | ✅ 100% | KSP 注解处理，全链路依赖注入                                              |
+| Release 构建  | ✅ 100% | 代码混淆 + 资源缩减，APK 体积更小                                          |
 
 ### API 端点
 
-| 端点 | 方法 | 说明 |
-|------|------|------|
-| `/v1/chat/completions` | POST | 聊天补全（支持流式 SSE） |
-| `/v1/models` | GET | 列出已加载模型 |
-| `/v1/tokens` | POST | 生成 Token |
-| `/v1/tokens` | GET | 列出所有 Token |
-| `/v1/tokens/{id}` | DELETE | 撤销 Token |
-| `/v1/config` | GET | 查询配置 |
-| `/v1/config` | PUT | 修改配置（认证开关等） |
-| `/health` | GET | 健康检查 |
+| 端点                     | 方法     | 说明             |
+| ---------------------- | ------ | -------------- |
+| `/v1/chat/completions` | POST   | 聊天补全（支持流式 SSE） |
+| `/v1/models`           | GET    | 列出已加载模型        |
+| `/v1/tokens`           | POST   | 生成 Token       |
+| `/v1/tokens`           | GET    | 列出所有 Token     |
+| `/v1/tokens/{id}`      | DELETE | 撤销 Token       |
+| `/v1/config`           | GET    | 查询配置           |
+| `/v1/config`           | PUT    | 修改配置（认证开关等）    |
+| `/health`              | GET    | 健康检查           |
 
 ## 🚀 快速开始
 
@@ -85,8 +95,8 @@ GalleryApi/
 1. 从 [Releases](https://github.com/XiTu893/GalleryApi/releases/latest) 下载 APK
 2. 安装到 Android 设备（API 31+ / Android 12+）
 3. 打开应用，下载一个模型（如 Gemma）
-4. 进入 **Settings → API Service**，点击 **Start** 启动服务
-5. 记下显示的端口号（默认 8080）
+4. 进入 **设置 → API 服务**，点击 **启动** 启动服务
+5. 记下显示的 IP 地址和端口号（默认 8080）
 
 ### API 测试
 
@@ -94,13 +104,13 @@ API 服务器运行在 `http://<设备IP>:8080`
 
 ```bash
 # 健康检查
-curl http://127.0.0.1:8080/health
+curl http://192.168.x.x:8080/health
 
 # 查询已加载模型
-curl http://127.0.0.1:8080/v1/models
+curl http://192.168.x.x:8080/v1/models
 
 # 聊天补全（非流式）
-curl -X POST http://127.0.0.1:8080/v1/chat/completions \
+curl -X POST http://192.168.x.x:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "gemma-4-e2b-it",
@@ -108,7 +118,7 @@ curl -X POST http://127.0.0.1:8080/v1/chat/completions \
   }'
 
 # 聊天补全（流式 SSE）
-curl -X POST http://127.0.0.1:8080/v1/chat/completions \
+curl -X POST http://192.168.x.x:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "gemma-4-e2b-it",
@@ -117,12 +127,12 @@ curl -X POST http://127.0.0.1:8080/v1/chat/completions \
   }'
 
 # 生成 Token（认证已启用时）
-curl -X POST http://127.0.0.1:8080/v1/tokens \
+curl -X POST http://192.168.x.x:8080/v1/tokens \
   -H "Content-Type: application/json" \
   -d '{"name": "test-token"}'
 
 # 使用 Token 访问
-curl -X POST http://127.0.0.1:8080/v1/chat/completions \
+curl -X POST http://192.168.x.x:8080/v1/chat/completions \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -155,18 +165,52 @@ LlmModelHelper → LiteRT-LM Engine (Gemma/Qwen)
 JSON (OpenAI Format) / SSE Stream
 ```
 
+### Clean Architecture 分层
+
+```
+┌─────────────────────────────────────────┐
+│  UI 层 (Compose)                        │
+│  ApiServiceControlPanel                 │
+└──────────────┬──────────────────────────┘
+               │ hiltViewModel()
+┌──────────────▼──────────────────────────┐
+│  ViewModel 层                           │
+│  ApiServiceViewModel                    │
+│  - serverStatus: StateFlow              │
+│  - apiConfig: StateFlow                 │
+│  - serverAddress: StateFlow             │
+└──────────────┬──────────────────────────┘
+               │
+┌──────────────▼──────────────────────────┐
+│  UseCase 层                             │
+│  StartApiServerUseCase                  │
+│  StopApiServerUseCase                   │
+│  GetApiServerStatusUseCase              │
+│  UpdateApiConfigUseCase                 │
+│  ManageApiTokensUseCase                 │
+└──────────────┬──────────────────────────┘
+               │
+┌──────────────▼──────────────────────────┐
+│  Service 层                             │
+│  ApiServerController (StateFlow)        │
+│  ApiServerService (Foreground Service)  │
+│  ApiService (NanoHTTPD)                 │
+└─────────────────────────────────────────┘
+```
+
 ## 🛠️ 技术栈
 
-| 技术 | 版本 | 用途 |
-|------|------|------|
-| Kotlin | 2.2.0 | 主要开发语言 |
-| NanoHTTPD | 2.3.1 | 嵌入式 HTTP 服务器 |
-| Gson | 2.10.1 | JSON 序列化/反序列化 |
-| Kotlin Coroutines | - | 异步处理 |
-| LiteRT-LM | 0.11.0 | 端侧 LLM 推理引擎 |
-| Hilt + KSP | - | 依赖注入 |
-| Android Foreground Service | - | 后台服务保活 |
-| minSdk | API 31 | Android 12+ |
+| 技术                            | 版本     | 用途            |
+| ----------------------------- | ------ | ------------- |
+| Kotlin                        | 2.2.0  | 主要开发语言        |
+| NanoHTTPD                     | 2.3.1  | 嵌入式 HTTP 服务器  |
+| Gson                          | 2.10.1 | JSON 序列化/反序列化 |
+| Kotlin Coroutines + StateFlow | -      | 异步处理 + 状态管理   |
+| LiteRT-LM                     | 0.11.0 | 端侧 LLM 推理引擎   |
+| Hilt + KSP                    | -      | 依赖注入          |
+| Android Foreground Service    | -      | 后台服务保活        |
+| ProGuard + R8                 | -      | 代码混淆 + 资源缩减   |
+| minSdk                        | API 31 | Android 12+   |
 
 ## 🔐 安全特性
 
@@ -181,7 +225,7 @@ JSON (OpenAI Format) / SSE Stream
 ## 📊 当前进度
 
 ```
-总体进度: ████████████████████ 95%
+总体进度: ████████████████████ 98%
 
 ✅ 数据模型层:    ████████████████████ 100%
 ✅ Token 管理:    ████████████████████ 100%
@@ -190,6 +234,7 @@ JSON (OpenAI Format) / SSE Stream
 ✅ HTTP 服务器:   ████████████████████ 100%
 ✅ API 路由:      ████████████████████ 100%
 ✅ LiteRT 推理:   ████████████████████ 100%
+✅ UseCase 层:    ████████████████████ 100%
 ✅ UI 控制面板:   ████████████████████ 100%
 ✅ CI/CD + Release: ██████████████████ 100%
 ⏳ 安全增强:      ████████████░░░░░░░░  60%
@@ -197,12 +242,9 @@ JSON (OpenAI Format) / SSE Stream
 
 ## 🎯 下一步计划
 
-### 增强功能
-
 - [ ] 加密存储 - 使用 EncryptedSharedPreferences 存储 Token
 - [ ] HTTPS/TLS 支持 - 本地自签名证书
 - [ ] 速率限制 - 防止 API 滥用
-- [ ] 显示 LAN IP 地址 - 方便局域网访问
 - [ ] 多模型并发 - 支持同时加载多个模型
 - [ ] Embeddings API - `/v1/embeddings` 端点
 - [ ] 自定义系统提示词 - 通过 API 配置 system prompt
@@ -214,9 +256,9 @@ JSON (OpenAI Format) / SSE Stream
 git clone https://github.com/XiTu893/GalleryApi.git
 cd GalleryApi
 
-# 构建 Debug APK
+# 构建 Release APK
 cd gallery/Android/src
-./gradlew assembleDebug --no-daemon
+./gradlew assembleRelease --no-daemon
 
 # 或在 Android Studio 中打开 gallery/Android/src 目录
 ```
@@ -243,17 +285,22 @@ Apache License 2.0 (与 Google AI Edge Gallery 保持一致)
 
 ## 📞 联系方式
 
-如有问题或建议，请提交 Issue 或发送邮件至 28491599@qq.com。
+如有问题或建议，请提交 Issue 或发送邮件至 <28491599@qq.com>。
 
 ## ☕ 支持项目
 
 如果这个项目对你有帮助，欢迎扫描下方二维码捐赠支持！
 
+<div align="center">
 <img src="doc/QrReward.jpg" alt="捐赠二维码" width="200" />
 
----
+微信扫一扫捐赠
+
+</div>
+
+***
 
 **最后更新**: 2026-05-16
-**版本**: 1.0.0
+**版本**: 1.0.15
 **状态**: 核心功能已完成，持续优化中
-**仓库**: https://github.com/XiTu893/GalleryApi
+**仓库**: <https://github.com/XiTu893/GalleryApi>
